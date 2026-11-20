@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#6c4cff"><title>CrewUp — Friends Hub</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--ink:#19172b;--muted:#77758c;--bg:#f6f4ff;--purple:#6c4cff;--pink:#ff5ca8;--card:#fff}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+header{padding:24px 18px 20px;color:white;background:linear-gradient(130deg,#6246ea,#a44dce 60%,#ff65a8);border-radius:0 0 28px 28px}
+.top{display:flex;justify-content:space-between;align-items:center}.logo{font-size:25px;font-weight:900;letter-spacing:-1px}.pill{background:#ffffff25;padding:7px 11px;border-radius:20px;font-size:12px}
+h1{font-size:27px;margin:23px 0 4px}header p{margin:0;opacity:.9;font-size:14px}
+main{max-width:650px;margin:auto;padding:16px 14px 90px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:-1px}
+.stat,.card{background:var(--card);border-radius:18px;padding:15px;box-shadow:0 5px 18px #29205b0b}.stat b{font-size:22px;display:block}.stat span{font-size:11px;color:var(--muted)}
+.section{display:flex;justify-content:space-between;align-items:center;margin:23px 2px 11px}.section h2{font-size:18px;margin:0}.section small{color:var(--muted)}
+.card{margin-bottom:12px}.challenge{background:linear-gradient(120deg,#fff0f7,#f1edff);border:1px solid #f0e5ff}
+.challenge h3{margin:8px 0 5px}.challenge p{margin:0 0 13px;color:#666;font-size:13px}
+button{border:0;border-radius:12px;padding:11px 14px;font-weight:750;background:var(--purple);color:white;font-size:13px;cursor:pointer}
+button.secondary{background:#f0edff;color:#5a42d5}button.danger{background:#fff0f3;color:#d83d72}
+input,textarea{width:100%;border:1px solid #e8e4f2;background:#fbfaff;border-radius:12px;padding:12px;font:inherit;margin:6px 0 10px;color:var(--ink)}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.feeditem{border-bottom:1px solid #f0edf6;padding:11px 0}.feeditem:last-child{border:0}.feeditem p{margin:5px 0;font-size:14px;white-space:pre-wrap}.meta{color:var(--muted);font-size:11px}
+.person{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f0edf6}
+.rank{font-weight:800;color:var(--purple);margin-right:9px}.tabs{position:fixed;bottom:0;left:0;right:0;background:#ffffffed;backdrop-filter:blur(12px);display:flex;justify-content:center;gap:8px;padding:10px;border-top:1px solid #eee}
+.tabs button{background:transparent;color:#77718b;padding:9px 12px}.tabs button.active{background:#eeeaff;color:#563bd5}
+.hidden{display:none}.note{font-size:12px;color:var(--muted);line-height:1.5}.tag{font-size:11px;font-weight:800;color:#7048cf;background:#eee8ff;padding:5px 8px;border-radius:20px}
+</style></head>
+<body>
+<header><div class="top"><div class="logo">⚡ CrewUp</div><div class="pill">YOUR FRIENDS HUB</div></div><h1>Good vibes. Great crew.</h1><p>Share moments, take challenges and rise together.</p></header>
+<main>
+<div class="stats"><div class="stat"><b id="points">0</b><span>YOUR POINTS</span></div><div class="stat"><b id="postsCount">0</b><span>POSTS</span></div><div class="stat"><b id="friendsCount">0</b><span>FRIENDS</span></div></div>
+<section id="home">
+<div class="section"><h2>🔥 Today's challenge</h2><small>Daily mission</small></div>
+<div class="card challenge"><span class="tag">TODAY'S MISSION</span><h3>Share one thing you're grateful for</h3><p>Post a positive thought and earn 10 points. Small actions build a strong crew.</p><button onclick="completeChallenge()">Complete challenge +10</button></div>
+<div class="section"><h2>💬 Crew feed</h2><small>On this device</small></div>
+<div class="card"><textarea id="postText" rows="2" placeholder="Share an idea, a win or a question..."></textarea><button onclick="addPost()">Publish post</button></div>
+<div class="card" id="feed"><p class="note">No posts yet. Be the first to share something!</p></div>
+</section>
+<section id="leaderboard" class="hidden"><div class="section"><h2>🏆 Leaderboard</h2><small>Local demo ranking</small></div><div class="card" id="rankings"></div></section>
+<section id="friends" class="hidden"><div class="section"><h2>🧑‍🤝‍🧑 Your crew</h2><small>Add names</small></div><div class="card"><div class="row"><input id="friendName" placeholder="Friend's name"><button onclick="addFriend()">Add friend</button></div><div id="friendList"></div></div><p class="note">This first version stores data on this phone only. Friends on other phones will not see your posts yet.</p></section>
+<section id="about" class="hidden"><div class="section"><h2>⚙️ About CrewUp</h2></div><div class="card"><p><b>Version 1.0 · Offline-ready</b></p><p class="note">Your posts, friends and points are saved in this browser on this device. No account, subscription or paid service is needed.</p><button class="secondary" onclick="exportData()">Export my data</button> <button class="danger" onclick="clearData()">Clear all data</button></div></section>
+</main>
+<nav class="tabs"><button class="active" onclick="tab('home',this)">🏠 Home</button><button onclick="tab('leaderboard',this)">🏆 Rank</button><button onclick="tab('friends',this)">👥 Crew</button><button onclick="tab('about',this)">⚙️ More</button></nav>
+<script>
+const $=id=>document.getElementById(id);
+let data=JSON.parse(localStorage.getItem('crewup')||'{"points":0,"posts":[],"friends":[],"done":false}');
+function save(){localStorage.setItem('crewup',JSON.stringify(data));render()}
+function tab(name,btn){['home','leaderboard','friends','about'].forEach(x=>$(x).classList.toggle('hidden',x!==name));document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');render()}
+function completeChallenge(){if(data.done){alert('Challenge already completed today!');return}data.done=true;data.points+=10;save();alert('Nice work! 10 points added.')}
+function addPost(){let t=$('postText').value.trim();if(!t)return;data.posts.unshift({text:t,time:new Date().toLocaleString()});$('postText').value='';save()}
+function addFriend(){let n=$('friendName').value.trim();if(!n)return;if(data.friends.some(x=>x.toLowerCase()===n.toLowerCase()))return alert('That friend is already added.');data.friends.push(n);$('friendName').value='';save()}
+function render(){$('points').textContent=data.points;$('postsCount').textContent=data.posts.length;$('friendsCount').textContent=data.friends.length;
+$('feed').innerHTML=data.posts.length?data.posts.map(p=>`<div class="feeditem"><p>${esc(p.text)}</p><div class="meta">${esc(p.time)}</div></div>`).join(''):'<p class="note">No posts yet. Be the first to share something!</p>';
+$('friendList').innerHTML=data.friends.length?data.friends.map((f,i)=>`<div class="person"><span>🟣 ${esc(f)}</span><button class="danger" onclick="removeFriend(${i})">Remove</button></div>`).join(''):'<p class="note">Your crew list is empty.</p>';
+let ranks=[{n:'You',p:data.points},...data.friends.map(n=>({n,p:0}))].sort((a,b)=>b.p-a.p);$('rankings').innerHTML=ranks.map((r,i)=>`<div class="person"><span><i class="rank">#${i+1}</i>${esc(r.n)}</span><b>${r.p} pts</b></div>`).join('')}
+function removeFriend(i){data.friends.splice(i,1);save()}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function exportData(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='crewup-backup.json';a.click();URL.revokeObjectURL(a.href)}
+function clearData(){if(confirm('Delete all CrewUp data on this phone?')){data={points:0,posts:[],friends:[],done:false};save()}}
+render();
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js');
+</script></body></html>
